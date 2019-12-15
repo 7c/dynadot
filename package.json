@@ -1,6 +1,6 @@
 {
   "name": "dynadot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "library for interacting with Dynadot API",
   "main": "index.js",
   "license": "MIT",
@@ -11,7 +11,7 @@
   "keywords": [
     "dynadot",
     "domain api",
-    "registar api",
+    "registar api"
   ],
   "dependencies": {
     "axios": "^0.17.1",
