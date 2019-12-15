@@ -1,6 +1,6 @@
 {
   "name": "dynadot",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "library for interacting with Dynadot API",
   "main": "index.js",
   "license": "MIT",

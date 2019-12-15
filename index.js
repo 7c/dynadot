@@ -44,33 +44,8 @@ class dynadot {
             var got = await that.doRequest('get',endPoint)
             var json = parser.toJson(got,{object:true})
             var ret = {}
-/*
-{
-  Domain: {
-    Name: 'yadro.im',
-    Expiration: '1597280398000',
-    Registration: '1533945600000',
-    NameServerSettings: { Type: 'Name Servers', NameServers: [Object] },
-    Whois: {
-      Registrant: [Object],
-      Admin: [Object],
-      Technical: [Object],
-      Billing: [Object]
-    },
-    Locked: 'yes',
-    Disabled: 'no',
-    UdrpLocked: 'no',
-    RegistrantUnverified: 'no',
-    Hold: 'no',
-    Privacy: 'none',
-    isForSale: 'no',
-    RenewOption: 'manual renewal',
-    Note: {},
-    Folder: { FolderId: '-1', FolderName: '(no folder)' }
-  }
-}
-*/
-            for(var domain of json.ListDomainInfoResponse.ListDomainInfoContent.DomainInfoList.DomainInfo)
+            // aggregate
+           for(var domain of json.ListDomainInfoResponse.ListDomainInfoContent.DomainInfoList.DomainInfo)
             {
                 ret[domain.Domain.Name]=domain.Domain
             }
