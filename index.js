@@ -26,6 +26,7 @@ class dynadot {
             })
         })
     }
+
     //https://api.dynadot.com/api3.xml?key=mykey&command=set_ns&domain=domain1.com,domain2.com&ns0=ns1.hostns.com&ns1=ns2.hostns.com
     setNameserver(domain,nameservers) {
         var that = this
