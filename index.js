@@ -65,6 +65,22 @@ class dynadot {
             resolve(json.RegisterResponse)
         })
     }
+
+    //https://api.dynadot.com/api3.xml?key=0&command=tld_price&currency=USD
+    tldPrices(currency='USD') {
+        return new Promise(async (resolve,reject) => {
+            const endPoint = `&command=tld_price&currency=${currency}`
+            const got = await this.doRequest('get',endPoint)
+            const json = parser.toJson(got,{object:true})
+            if (json.TldPriceResponse.TldPriceResponseHeader.SuccessCode!=="0") return reject(json)
+            let ret = {}
+            for(const tld of json.TldPriceResponse.TldPriceContent)
+            {
+                ret[tld.TldContent.Tld]=tld.TldContent
+            }
+            resolve(ret)
+        })
+    }
 }
 
 

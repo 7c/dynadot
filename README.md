@@ -29,4 +29,14 @@ await dynadot.setNameserver('temp.com',['ns1.com','ns2.com'])
 ## registerDomain(domainName,durationYears, currency='USD',allowPremium=false)
 ```
 await dynadot.registerDomain('yourdomain.com',1)
+// success
+{"RegisterHeader":{"SuccessCode":"0","Status":"success"},"RegisterContent":{"Expiration":"1738627199000"}}
+// errors
+{"RegisterHeader":{"SuccessCode":"1","Status":"not_available"}}
+{"RegisterHeader":{"SuccessCode":"-1","Status":"error","Error":"this domain is a premium domain, please use premium option"}}
+```
+
+## tldPrices(currency='USD') 
+```
+await dynadot.tldPrices()
 ```
