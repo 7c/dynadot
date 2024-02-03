@@ -1,5 +1,6 @@
 # Dynadot API
-api version 3 wrapper which converts their XML response to JSON
+api version 3 wrapper which converts their XML response to JSON. Docs at https://www.dynadot.com/domain/api-commands
+
 
 # Install
 ```
@@ -8,8 +9,8 @@ npm install --save dynadot
 
 # Embed
 ```
-var Dynadot = require('dynadot')
-var dynadot = new Dynadot('<APIKEY>')
+const Dynadot = require('dynadot')
+const dynadot = new Dynadot('<APIKEY>')
 ```
 
 # Methods
@@ -23,4 +24,9 @@ var allDomains = await dynadot.listDomains()
 ## setNameserver(domain,['ns1','ns2'...]) <Promise>
 ```
 await dynadot.setNameserver('temp.com',['ns1.com','ns2.com'])
+```
+
+## registerDomain(domainName,durationYears, currency='USD',allowPremium=false)
+```
+await dynadot.registerDomain('yourdomain.com',1)
 ```
