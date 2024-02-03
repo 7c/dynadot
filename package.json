@@ -1,7 +1,7 @@
 {
-  "name": "dynadot",
+  "name": "@7c/dynadot",
   "version": "1.0.6",
-  "description": "library for interacting with Dynadot API",
+  "description": "library for interacting with Dynadot API v3",
   "main": "index.js",
   "license": "MIT",
   "repository": {
@@ -13,6 +13,7 @@
     "domain api",
     "registar api"
   ],
+  "author": "7c",
   "dependencies": {
     "axios": "^1.6.7",
     "debug": "^4.3.4",
