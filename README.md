@@ -4,7 +4,7 @@ api version 3 wrapper which converts their XML response to JSON. Docs at https:/
 
 # Install
 ```
-npm install --save dynadot
+npm install --save https://github.com/7c/dynadot
 ```
 
 # Embed
@@ -34,9 +34,25 @@ await dynadot.registerDomain('yourdomain.com',1)
 // errors
 {"RegisterHeader":{"SuccessCode":"1","Status":"not_available"}}
 {"RegisterHeader":{"SuccessCode":"-1","Status":"error","Error":"this domain is a premium domain, please use premium option"}}
+{"RegisterHeader":{"SuccessCode":"5","Status":"system_busy"}}
 ```
 
 ## tldPrices(currency='USD') 
 ```
 await dynadot.tldPrices()
 ```
+
+
+## deleteDomain(domainName)
+```
+await dynadot.deleteDomain('yourdomain.com')
+
+// success
+{ DeleteHeader: { SuccessCode: '0', Status: 'success' } }
+
+// errors
+{"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"could not find domain in your account"}}
+{"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"Please unlock your domain firstly."}}
+
+
+``` 

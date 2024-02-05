@@ -81,6 +81,16 @@ class dynadot {
             resolve(ret)
         })
     }
+
+    //https://api.dynadot.com/api3.xml?key=mykey&command=delete&domain=domain1.com
+    deleteDomain(domainName) {
+        return new Promise(async (resolve,reject) => {
+            const endPoint = `&command=delete&domain=${domainName}`
+            const got = await this.doRequest('get',endPoint)
+            const json = parser.toJson(got,{object:true})
+            resolve(json.DeleteResponse)
+        })
+    }
 }
 
 
