@@ -54,5 +54,13 @@ await dynadot.deleteDomain('yourdomain.com')
 {"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"could not find domain in your account"}}
 {"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"Please unlock your domain firstly."}}
 
-
 ``` 
+
+## getTransferAuthCode(domainName,new_code=false,unlock_domain_for_transfer=true)
+```
+await dynadot.getTransferAuthCode('yourdomain.com')
+// success
+{"GetTransferAuthCodeResponse":{"GetTransferAuthCodeHeader":{"SuccessCode":"0","Status":"success","AuthCode":"e478582Zu663762"}}}
+//errors
+{"GetTransferAuthCodeResponse":{"GetTransferAuthCodeHeader":{"SuccessCode":"-1","Status":"error","Error":"need api skip lock agreement for using unlock_domain_for_transfer tag."}}}
+```

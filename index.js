@@ -91,6 +91,19 @@ class dynadot {
             resolve(json.DeleteResponse)
         })
     }
+
+    //https://api.dynadot.com/api3.xml?key=mykey&command=get_transfer_auth_code&domain=domian1.com&new_code=1&unlock_domain_for_transfer=1
+    getTransferAuthCode(domainName,new_code=false,unlock_domain_for_transfer=true) {
+        return new Promise(async (resolve,reject) => {
+            let endPoint = `&command=get_transfer_auth_code&domain=${domainName}`
+            if (new_code===true) endPoint+='&new_code=1'
+            if (unlock_domain_for_transfer===true) endPoint+='&unlock_domain_for_transfer=1'
+
+            const got = await this.doRequest('get',endPoint)
+            const json = parser.toJson(got,{object:true})
+            resolve(json)
+        })
+    }
 }
 
 
