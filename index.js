@@ -2,7 +2,7 @@ var debug = require('debug')('dynadot')
 var axios = require('axios')
 var fs = require('fs')
 var baseUrl = 'https://api.dynadot.com/api3.xml'
-var parser = require('xml2json');
+var parser = require('@7c/xml2json');
 
 class dynadot {
     constructor(apikey) {

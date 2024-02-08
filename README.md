@@ -44,15 +44,20 @@ await dynadot.tldPrices()
 
 
 ## deleteDomain(domainName)
+important: only grace-period domains can be deleted at dynadot. other domains or transfered domains cannot be deleted with this method.(check dynadot statement)
 ```
 await dynadot.deleteDomain('yourdomain.com')
 
 // success
 { DeleteHeader: { SuccessCode: '0', Status: 'success' } }
+{"DeleteHeader":{"SuccessCode":"1","Status":"grace_expired"}}
 
 // errors
 {"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"could not find domain in your account"}}
 {"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"Please unlock your domain firstly."}}
+{"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"problem with connection to main server"}}
+{"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"connection to main server is busy"}}
+{"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"connection to main server is offline"}}
 
 ``` 
 
