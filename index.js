@@ -55,11 +55,12 @@ class dynadot {
     }
 
     // https://api.dynadot.com/api3.xml?key=mykey&command=register&domain=domain1.net&duration=3&currency=USD
-    registerDomain(domainName,durationYears, currency='USD',allowPremium=false) {
+    registerDomain(domainName,durationYears, currency='USD',allowPremium=false, coupon=false) {
         return new Promise(async (resolve,reject) => {
             if (durationYears<1) return ('durationYears must be at least 1')
             let endPoint = `&command=register&domain=${domainName}&duration=${durationYears}&currency=${currency}`
             if (allowPremium===true) endPoint+='&allow_premium=1'
+            if (coupon!==false) endPoint+=`&coupon=${coupon}`
             const got = await this.doRequest('get',endPoint)
             const json = parser.toJson(got,{object:true})
             resolve(json.RegisterResponse)

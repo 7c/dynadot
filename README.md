@@ -26,7 +26,7 @@ var allDomains = await dynadot.listDomains()
 await dynadot.setNameserver('temp.com',['ns1.com','ns2.com'])
 ```
 
-## registerDomain(domainName,durationYears, currency='USD',allowPremium=false)
+## registerDomain(domainName,durationYears, currency='USD',allowPremium=false, coupon=false) 
 ```
 await dynadot.registerDomain('yourdomain.com',1)
 // success
