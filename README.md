@@ -69,3 +69,15 @@ await dynadot.getTransferAuthCode('yourdomain.com')
 //errors
 {"GetTransferAuthCodeResponse":{"GetTransferAuthCodeHeader":{"SuccessCode":"-1","Status":"error","Error":"need api skip lock agreement for using unlock_domain_for_transfer tag."}}}
 ```
+
+## renewDomain(domainName,durationYears=1)
+```
+await dynadot.renewDomain('yourdomain.com')
+// success
+{"RenewResponse":{"RenewHeader":{"SuccessCode":"0","Status":"success"},"RenewContent":{"Expiration":"1738627199000"}}}
+// errors
+{"RenewResponse":{"RenewHeader":{"SuccessCode":"-1","Status":"error","Error":"could not find domain in your account"}}}
+
+```
+
+
