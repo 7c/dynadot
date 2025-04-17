@@ -116,6 +116,10 @@ class dynadot {
         })
     }
 
+    async unlockDomain(domainName) {
+        return this.getTransferAuthCode(domainName, false, true)
+    }
+
     renewDomain(domainName, durationYears = 1) { // adapted to new xml library
         return new Promise(async (resolve, reject) => {
             const endPoint = `&command=renew&domain=${domainName}&duration=${durationYears}`

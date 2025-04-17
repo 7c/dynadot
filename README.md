@@ -80,4 +80,19 @@ await dynadot.renewDomain('yourdomain.com')
 
 ```
 
+## unlockDomain(domainName)
+this will use the getTransferAuthCode method with new_code=false and unlock_domain_for_transfer=true to unlock the domain for transfer because dynadot does not have a separate method for this.
+```
+await dynadot.unlockDomain('yourdomain.com')
+// success
+{GetTransferAuthCodeResponse: {GetTransferAuthCodeHeader: { SuccessCode: '0', Status: 'success', AuthCode: 'xxxx' }}}
+// errors
+{
+  GetTransferAuthCodeResponse: {GetTransferAuthCodeHeader: {
+      ResponseCode: '-1',
+      Status: 'error',
+      Error: 'could not find domain in your account or domain expired for more than 30 days.'}}
+}
+
+```
 
