@@ -1,4 +1,5 @@
 release.sh
 node_modules/
-demo.js
 .vscode/
+package-lock.json
+coverage/

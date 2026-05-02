@@ -1,0 +1,14 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noEmit": false
+    },
+    "include": [
+        "src/index.ts",
+        "src/Dynadot.ts",
+        "src/flatten.ts",
+        "src/types.ts",
+        "src/http.ts"
+    ],
+    "exclude": ["node_modules", "dist", "**/*.test.ts", "src/examples"]
+}

@@ -1,98 +1,194 @@
 # Dynadot API
-api version 3 wrapper which converts their XML response to JSON. Docs at https://www.dynadot.com/domain/api-commands
 
+TypeScript / Node.js wrapper for the [Dynadot API](https://www.dynadot.com/domain/api-commands).
 
-# Install
-```
+Covers two API surfaces in one client:
+
+- **Legacy XML API v3** (`api.dynadot.com/api3.xml`) — used by `listDomains`, `setNameserver`, `registerDomain`, `tldPrices`, `deleteDomain`, `getTransferAuthCode`, `renewDomain`, `unlockDomain`. XML responses are auto-parsed and `_text` nodes are flattened to plain values.
+- **RESTful v1 API** (`api.dynadot.com/restful/v1`) — used by `pushDomain`. Authenticates with `Bearer <apiKey>` plus an HMAC-SHA256 `X-Signature` header derived from your API secret.
+
+## Install
+
+```bash
 npm install --save https://github.com/7c/dynadot
 ```
 
-# Embed
+## Usage
+
+TypeScript / ESM:
+
+```typescript
+import Dynadot from '@7c/dynadot'
+
+const d = new Dynadot('<APIKEY>')                   // XML v3 only
+const d2 = new Dynadot('<APIKEY>', '<APISECRET>')   // also enables pushDomain (RESTful v1)
 ```
-const Dynadot = require('dynadot')
-const dynadot = new Dynadot('<APIKEY>')
+
+CommonJS:
+
+```javascript
+const Dynadot = require('@7c/dynadot').default
+const d = new Dynadot('<APIKEY>')
 ```
+
+The constructor's second argument (`apiSecret`) is optional and only required by methods that hit the RESTful v1 API (currently `pushDomain`). All legacy XML methods work with just the API key.
 
 # Methods
 
-## listDomains() <Promise>
-retrieves all domains from Dynadot and returns them (if success) as an object with domain as key, this way you can lookup very fast. Dynadot returns all the information for all domains, all you need to do is to find the domain by its index as domainname.
-```
-var allDomains = await dynadot.listDomains()
+## listDomains() → `Promise<Record<string, DomainInfo>>`
+
+Retrieves all domains from your Dynadot account and returns them keyed by domain name for fast lookup. Dynadot returns full information for each domain.
+
+```typescript
+const allDomains = await d.listDomains()
+// {
+//   'mydomain.com': { Name: 'mydomain.com', Expiration: '...', ... },
+//   'other.net':    { Name: 'other.net',    Expiration: '...', ... },
+// }
 ```
 
-## setNameserver(domain,['ns1','ns2'...]) <Promise>
-```
-await dynadot.setNameserver('temp.com',['ns1.com','ns2.com'])
+## setNameserver(domain, nameservers) → `Promise<unknown>`
+
+```typescript
+await d.setNameserver('temp.com', ['ns1.com', 'ns2.com'])
 ```
 
-## registerDomain(domainName,durationYears, currency='USD',allowPremium=false, coupon=false) 
-```
-await dynadot.registerDomain('yourdomain.com',1)
+## registerDomain(domainName, durationYears, currency='USD', allowPremium=false, coupon=false) → `Promise<RegisterResponse>`
+
+```typescript
+await d.registerDomain('yourdomain.com', 1)
 // success
-{"RegisterHeader":{"SuccessCode":"0","Status":"success"},"RegisterContent":{"Expiration":"1738627199000"}}
+{ RegisterHeader: { SuccessCode: '0', Status: 'success' },
+  RegisterContent: { Expiration: '1738627199000' } }
+
 // errors
-{"RegisterHeader":{"SuccessCode":"1","Status":"not_available"}}
-{"RegisterHeader":{"SuccessCode":"-1","Status":"error","Error":"this domain is a premium domain, please use premium option"}}
-{"RegisterHeader":{"SuccessCode":"5","Status":"system_busy"}}
+{ RegisterHeader: { SuccessCode: '1',  Status: 'not_available' } }
+{ RegisterHeader: { SuccessCode: '-1', Status: 'error',
+                    Error: 'this domain is a premium domain, please use premium option' } }
+{ RegisterHeader: { SuccessCode: '5',  Status: 'system_busy' } }
 ```
 
-## tldPrices(currency='USD') 
-```
-await dynadot.tldPrices()
+> **Note**: passing `durationYears < 1` keeps the returned promise pending forever (legacy quirk preserved from the original JS implementation). Validate your input before calling.
+
+## tldPrices(currency='USD') → `Promise<Record<string, TldPriceContent>>`
+
+Returns a lookup table keyed by TLD.
+
+```typescript
+const prices = await d.tldPrices()
+// { com: { Tld: 'com', Registration: '...' }, net: { ... }, ... }
 ```
 
+Rejects with the full parsed payload when `SuccessCode !== '0'`.
 
-## deleteDomain(domainName)
-important: only grace-period domains can be deleted at dynadot. other domains or transfered domains cannot be deleted with this method.(check dynadot statement)
-```
-await dynadot.deleteDomain('yourdomain.com')
+## deleteDomain(domainName) → `Promise<DeleteResponse>`
 
+> Only grace-period domains can be deleted via this endpoint. Other or transferred domains cannot.
+
+```typescript
+await d.deleteDomain('yourdomain.com')
 // success
 { DeleteHeader: { SuccessCode: '0', Status: 'success' } }
-{"DeleteHeader":{"SuccessCode":"1","Status":"grace_expired"}}
+{ DeleteHeader: { SuccessCode: '1', Status: 'grace_expired' } }
 
 // errors
-{"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"could not find domain in your account"}}
-{"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"Please unlock your domain firstly."}}
-{"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"problem with connection to main server"}}
-{"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"connection to main server is busy"}}
-{"DeleteHeader":{"SuccessCode":"-1","Status":"error","Error":"connection to main server is offline"}}
-
-``` 
-
-## getTransferAuthCode(domainName,new_code=false,unlock_domain_for_transfer=true)
+{ DeleteHeader: { SuccessCode: '-1', Status: 'error', Error: 'could not find domain in your account' } }
+{ DeleteHeader: { SuccessCode: '-1', Status: 'error', Error: 'Please unlock your domain firstly.' } }
+{ DeleteHeader: { SuccessCode: '-1', Status: 'error', Error: 'problem with connection to main server' } }
 ```
-await dynadot.getTransferAuthCode('yourdomain.com')
+
+## getTransferAuthCode(domainName, new_code=false, unlock_domain_for_transfer=true) → `Promise<GetTransferAuthCodeResponse>`
+
+```typescript
+await d.getTransferAuthCode('yourdomain.com')
 // success
-{"GetTransferAuthCodeResponse":{"GetTransferAuthCodeHeader":{"SuccessCode":"0","Status":"success","AuthCode":"e478582Zu663762"}}}
-//errors
-{"GetTransferAuthCodeResponse":{"GetTransferAuthCodeHeader":{"SuccessCode":"-1","Status":"error","Error":"need api skip lock agreement for using unlock_domain_for_transfer tag."}}}
-```
+{ GetTransferAuthCodeResponse: { GetTransferAuthCodeHeader:
+  { SuccessCode: '0', Status: 'success', AuthCode: 'e478582Zu663762' } } }
 
-## renewDomain(domainName,durationYears=1)
-```
-await dynadot.renewDomain('yourdomain.com')
-// success
-{"RenewResponse":{"RenewHeader":{"SuccessCode":"0","Status":"success"},"RenewContent":{"Expiration":"1738627199000"}}}
 // errors
-{"RenewResponse":{"RenewHeader":{"SuccessCode":"-1","Status":"error","Error":"could not find domain in your account"}}}
-
+{ GetTransferAuthCodeResponse: { GetTransferAuthCodeHeader:
+  { SuccessCode: '-1', Status: 'error',
+    Error: 'need api skip lock agreement for using unlock_domain_for_transfer tag.' } } }
 ```
 
-## unlockDomain(domainName)
-this will use the getTransferAuthCode method with new_code=false and unlock_domain_for_transfer=true to unlock the domain for transfer because dynadot does not have a separate method for this.
-```
-await dynadot.unlockDomain('yourdomain.com')
+## renewDomain(domainName, durationYears=1) → `Promise<RenewResponse>`
+
+```typescript
+await d.renewDomain('yourdomain.com')
 // success
-{GetTransferAuthCodeResponse: {GetTransferAuthCodeHeader: { SuccessCode: '0', Status: 'success', AuthCode: 'xxxx' }}}
-// errors
-{
-  GetTransferAuthCodeResponse: {GetTransferAuthCodeHeader: {
-      ResponseCode: '-1',
-      Status: 'error',
-      Error: 'could not find domain in your account or domain expired for more than 30 days.'}}
-}
+{ RenewHeader: { SuccessCode: '0', Status: 'success' },
+  RenewContent: { Expiration: '1738627199000' } }
 
+// errors
+{ RenewHeader: { SuccessCode: '-1', Status: 'error',
+                 Error: 'could not find domain in your account' } }
 ```
 
+## unlockDomain(domainName) → `Promise<GetTransferAuthCodeResponse>`
+
+Convenience wrapper around `getTransferAuthCode(domain, false, true)` since Dynadot has no dedicated unlock endpoint.
+
+```typescript
+await d.unlockDomain('yourdomain.com')
+// success
+{ GetTransferAuthCodeResponse: { GetTransferAuthCodeHeader:
+  { SuccessCode: '0', Status: 'success', AuthCode: 'xxxx' } } }
+
+// errors
+{ GetTransferAuthCodeResponse: { GetTransferAuthCodeHeader:
+  { SuccessCode: '-1', Status: 'error',
+    Error: 'could not find domain in your account or domain expired for more than 30 days.' } } }
+```
+
+## pushDomain(domainName, receiverPushUsername, receiverEmail?) → `Promise<PushDomainResponse>`
+
+Initiates a domain push from your Dynadot account to another Dynadot user. The recipient still has to accept the push from their own account.
+
+This method uses the **RESTful v1 API** and signs the request with HMAC-SHA256, so the `apiSecret` is required:
+
+```typescript
+const d = new Dynadot('<APIKEY>', '<APISECRET>')
+
+// minimal
+await d.pushDomain('mydomain.com', 'recipient_username')
+
+// with optional recipient email hint
+const result = await d.pushDomain(
+    'mydomain.com',
+    'recipient_username',
+    'recipient@example.com',
+)
+
+// success
+{ code: '200', message: 'Success' }
+```
+
+Throws `Error('apiSecret is required for signed RESTful API calls ...')` if you constructed `Dynadot` without an API secret.
+
+A runnable example using env vars lives at [`src/examples/pushDomain.ts`](src/examples/pushDomain.ts):
+
+```bash
+DYNADOT_API_KEY=...           \
+DYNADOT_API_SECRET=...        \
+DYNADOT_PUSH_DOMAIN=mydomain.com \
+DYNADOT_PUSH_RECEIVER_USER=otheruser \
+DYNADOT_PUSH_RECEIVER_EMAIL=other@example.com  \
+npx ts-node src/examples/pushDomain.ts
+```
+
+# TypeScript
+
+The package ships compiled JS plus `.d.ts` declarations in `dist/`. Public types (`DeleteResponse`, `RenewResponse`, `RegisterResponse`, `GetTransferAuthCodeResponse`, `DomainsByName`, `TldPricesByTld`, `PushDomainRequest`, `PushDomainResponse`, etc.) are re-exported from the package root:
+
+```typescript
+import Dynadot, { type PushDomainResponse, type DomainsByName } from '@7c/dynadot'
+```
+
+# Scripts
+
+```bash
+npm run build         # compile src/ to dist/
+npm run typecheck     # tsc --noEmit
+npm test              # run jest test suite
+npm run test:coverage # run with coverage report (enforces 100%)
+```
