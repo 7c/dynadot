@@ -170,6 +170,32 @@ class Dynadot {
             .update(stringToSign)
             .digest('hex');
     }
+    /**
+     * Generic signed RESTful v1 request. Computes the X-Request-ID and
+     * X-Signature headers per the Dynadot spec and forwards the call through
+     * the internal HttpClient. JSON-serializing the request body is the
+     * caller's responsibility (so the bytes signed match the bytes sent).
+     */
+    async restRequest(method, path, jsonBody) {
+        const requestId = this.generateRequestId();
+        const signature = this.signRequest(path, requestId, jsonBody ?? '');
+        const headers = {
+            Accept: 'application/json',
+            Authorization: `Bearer ${this.apikey}`,
+            'X-Request-ID': requestId,
+            'X-Signature': signature,
+        };
+        if (jsonBody !== undefined) {
+            headers['Content-Type'] = 'application/json';
+        }
+        const res = await http_1.httpClient.request({
+            method,
+            url: restBase + path,
+            data: jsonBody,
+            headers,
+        });
+        return res.data;
+    }
     // POST https://api.dynadot.com/restful/v1/domains/{domain_name}/push
     /**
      * Initiates a domain push to another Dynadot account. The recipient must
@@ -185,22 +211,16 @@ class Dynadot {
         };
         if (receiverEmail !== undefined)
             body.receiver_email = receiverEmail;
-        const jsonBody = JSON.stringify(body);
-        const requestId = this.generateRequestId();
-        const signature = this.signRequest(path, requestId, jsonBody);
-        const res = await http_1.httpClient.request({
-            method: 'post',
-            url: restBase + path,
-            data: jsonBody,
-            headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                Authorization: `Bearer ${this.apikey}`,
-                'X-Request-ID': requestId,
-                'X-Signature': signature,
-            },
-        });
-        return res.data;
+        return this.restRequest('post', path, JSON.stringify(body));
+    }
+    // GET https://api.dynadot.com/restful/v1/accounts/info
+    /**
+     * Retrieves the API-key holder's own account info, including the
+     * `username` used as the `receiver_push_username` argument to
+     * {@link pushDomain}. Requires `apiSecret` for request signing.
+     */
+    async accountInfo() {
+        return this.restRequest('get', '/restful/v1/accounts/info');
     }
 }
 exports.Dynadot = Dynadot;

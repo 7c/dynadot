@@ -571,3 +571,81 @@ describe('pushDomain (RESTful v1)', () => {
         )
     })
 })
+
+describe('accountInfo (RESTful v1)', () => {
+    const SECRET = 'TEST_API_SECRET'
+    const REQ_ID = '11111111-1111-4111-8111-111111111111'
+
+    /** Recompute the signature for an empty-body GET. */
+    function expectedSignature(path: string): string {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const crypto = require('crypto') as typeof import('crypto')
+        const stringToSign = `${APIKEY}\n${path}\n${REQ_ID}\n`
+        return crypto
+            .createHmac('sha256', SECRET)
+            .update(stringToSign)
+            .digest('hex')
+    }
+
+    test('throws when apiSecret is missing (signature cannot be computed)', async () => {
+        const d = new Dynadot(APIKEY)
+        await expect(d.accountInfo()).rejects.toThrow(/apiSecret is required/)
+        expect(mockedRequest).not.toHaveBeenCalled()
+    })
+
+    test('GETs /restful/v1/accounts/info with signed headers (no body, no Content-Type)', async () => {
+        const d = new Dynadot(APIKEY, SECRET)
+        jest.spyOn(
+            d as unknown as { generateRequestId(): string },
+            'generateRequestId'
+        ).mockReturnValue(REQ_ID)
+        const payload = {
+            code: '200',
+            message: 'Success',
+            data: {
+                account_info: {
+                    username: 'me_user',
+                    forum_name: 'Me',
+                    account_balance: '0.00',
+                },
+            },
+        }
+        mockedRequest.mockResolvedValueOnce({ data: payload })
+
+        const got = await d.accountInfo()
+
+        const expectedPath = '/restful/v1/accounts/info'
+        expect(got).toBe(payload)
+        expect(mockedRequest).toHaveBeenCalledWith({
+            method: 'get',
+            url: 'https://api.dynadot.com' + expectedPath,
+            data: undefined,
+            headers: {
+                Accept: 'application/json',
+                Authorization: `Bearer ${APIKEY}`,
+                'X-Request-ID': REQ_ID,
+                'X-Signature': expectedSignature(expectedPath),
+            },
+        })
+        // No Content-Type header on a body-less GET
+        const sentHeaders = mockedRequest.mock.calls[0][0].headers
+        expect(sentHeaders).not.toHaveProperty('Content-Type')
+    })
+
+    test('passes the parsed response body through verbatim (data field of HttpResponse)', async () => {
+        const d = new Dynadot(APIKEY, SECRET)
+        jest.spyOn(
+            d as unknown as { generateRequestId(): string },
+            'generateRequestId'
+        ).mockReturnValue(REQ_ID)
+        const payload = {
+            code: '200',
+            message: 'Success',
+            data: { account_info: { username: 'someone' } },
+        }
+        mockedRequest.mockResolvedValueOnce({ data: payload })
+        const got = await d.accountInfo()
+        expect(got).toEqual(payload)
+        expect(got.data?.account_info.username).toBe('someone')
+    })
+})

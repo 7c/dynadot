@@ -176,9 +176,46 @@ DYNADOT_PUSH_RECEIVER_EMAIL=other@example.com  \
 npx ts-node src/examples/pushDomain.ts
 ```
 
+> **Where do I get `DYNADOT_PUSH_RECEIVER_USER`?** Dynadot has no public lookup endpoint that resolves another account's username from an email or other identifier. The recipient must obtain it themselves from their own account: have them run [`src/examples/whoami.ts`](src/examples/whoami.ts) (see [`accountInfo()`](#accountinfo--promiseaccountinforesponse) below) with their own API key and share the printed username with you.
+
+## accountInfo() → `Promise<AccountInfoResponse>`
+
+Returns the API-key holder's own account info via `GET /restful/v1/accounts/info`. Useful for retrieving your own `username` (the value the sender needs as `receiver_push_username` for `pushDomain`), balance, default contacts, etc.
+
+Like `pushDomain`, this hits the **RESTful v1 API** and requires `apiSecret`:
+
+```typescript
+const d = new Dynadot('<APIKEY>', '<APISECRET>')
+const info = await d.accountInfo()
+// {
+//   code: '200',
+//   message: 'Success',
+//   data: {
+//     account_info: {
+//       username: 'your_push_username',
+//       forum_name: '...',
+//       account_balance: '0.00',
+//       balance_list: [{ currency: 'USD', amount: '0.00' }],
+//       /* ...rest of the account_info payload... */
+//     },
+//   },
+// }
+console.log(info.data?.account_info.username)
+```
+
+Runnable example at [`src/examples/whoami.ts`](src/examples/whoami.ts):
+
+```bash
+DYNADOT_API_KEY=...     \
+DYNADOT_API_SECRET=...  \
+npx ts-node src/examples/whoami.ts
+# -> Your push username is: <username>
+#    Share this with the sender as DYNADOT_PUSH_RECEIVER_USER.
+```
+
 # TypeScript
 
-The package ships compiled JS plus `.d.ts` declarations in `dist/`. Public types (`DeleteResponse`, `RenewResponse`, `RegisterResponse`, `GetTransferAuthCodeResponse`, `DomainsByName`, `TldPricesByTld`, `PushDomainRequest`, `PushDomainResponse`, etc.) are re-exported from the package root:
+The package ships compiled JS plus `.d.ts` declarations in `dist/`. Public types (`DeleteResponse`, `RenewResponse`, `RegisterResponse`, `GetTransferAuthCodeResponse`, `DomainsByName`, `TldPricesByTld`, `PushDomainRequest`, `PushDomainResponse`, `AccountInfo`, `AccountInfoResponse`, etc.) are re-exported from the package root:
 
 ```typescript
 import Dynadot, { type PushDomainResponse, type DomainsByName } from '@7c/dynadot'

@@ -1,4 +1,4 @@
-import type { AdditionalHttpOptions, Coupon, Currency, DeleteResponse, DomainsByName, GetTransferAuthCodeResponse, HttpMethod, PushDomainResponse, RegisterResponse, RenewResponse, TldPricesByTld } from './types';
+import type { AccountInfoResponse, AdditionalHttpOptions, Coupon, Currency, DeleteResponse, DomainsByName, GetTransferAuthCodeResponse, HttpMethod, PushDomainResponse, RegisterResponse, RenewResponse, TldPricesByTld } from './types';
 declare class Dynadot {
     apikey: string;
     apiSecret?: string;
@@ -28,6 +28,13 @@ declare class Dynadot {
      */
     protected signRequest(path: string, requestId: string, body: string): string;
     /**
+     * Generic signed RESTful v1 request. Computes the X-Request-ID and
+     * X-Signature headers per the Dynadot spec and forwards the call through
+     * the internal HttpClient. JSON-serializing the request body is the
+     * caller's responsibility (so the bytes signed match the bytes sent).
+     */
+    private restRequest;
+    /**
      * Initiates a domain push to another Dynadot account. The recipient must
      * accept the push via their own account (or via `accept_push`).
      *
@@ -35,6 +42,12 @@ declare class Dynadot {
      * HMAC-SHA256 X-Signature header can be computed.
      */
     pushDomain(domainName: string, receiverPushUsername: string, receiverEmail?: string): Promise<PushDomainResponse>;
+    /**
+     * Retrieves the API-key holder's own account info, including the
+     * `username` used as the `receiver_push_username` argument to
+     * {@link pushDomain}. Requires `apiSecret` for request signing.
+     */
+    accountInfo(): Promise<AccountInfoResponse>;
 }
 export default Dynadot;
 export { Dynadot };

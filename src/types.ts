@@ -117,3 +117,47 @@ export interface RestfulResponse<TData = unknown> {
 
 /** Response shape for POST /restful/v1/domains/{domain}/push. */
 export type PushDomainResponse = RestfulResponse
+
+/** Single contact block returned inside `account_info`. */
+export interface AccountContact {
+    organization?: string
+    name?: string
+    email?: string
+    phone_number?: string
+    phone_cc?: string
+    fax_number?: string
+    fax_cc?: string
+    address1?: string
+    address2?: string
+    city?: string
+    state?: string
+    zip?: string
+    country?: string
+}
+
+/**
+ * `account_info` payload returned by GET /restful/v1/accounts/info.
+ * Only `username` is strictly relied on by the library / examples; the
+ * remaining fields are typed for convenience and may be expanded later.
+ */
+export interface AccountInfo {
+    username: string
+    forum_name?: string
+    avatar_url?: string
+    account_contact?: AccountContact
+    customer_since?: number
+    account_lock?: string
+    custom_time_zone?: string
+    default_registrant_contact_id?: number
+    default_admin_contact_id?: number
+    default_technical_contact_id?: number
+    default_billing_contact_id?: number
+    total_spending?: string
+    price_level?: string
+    account_balance?: string
+    balance_list?: Array<{ currency?: string; amount?: string }>
+    [k: string]: unknown
+}
+
+/** Response shape for GET /restful/v1/accounts/info. */
+export type AccountInfoResponse = RestfulResponse<{ account_info: AccountInfo }>
