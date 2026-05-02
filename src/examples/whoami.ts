@@ -44,12 +44,7 @@ async function start(): Promise<void> {
     const d = new Dynadot(env.DYNADOT_API_KEY, env.DYNADOT_API_SECRET)
     try {
         const info = await d.accountInfo()
-        const username = info.data?.account_info?.username
-        if (info.code !== '200' || !username) {
-            console.error('[whoami] unexpected response:', info)
-            process.exit(2)
-        }
-        console.log(`Your push username is: ${username}`)
+        console.log(`Your push username is: ${info.username}`)
         console.log(
             'Share this with the sender as DYNADOT_PUSH_RECEIVER_USER.'
         )

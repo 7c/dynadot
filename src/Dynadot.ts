@@ -5,6 +5,7 @@ import * as crypto from 'crypto'
 import { flattenText } from './flatten'
 import { httpClient } from './http'
 import type {
+    AccountInfo,
     AccountInfoResponse,
     AdditionalHttpOptions,
     Coupon,
@@ -270,15 +271,24 @@ class Dynadot {
 
     // GET https://api.dynadot.com/restful/v1/accounts/info
     /**
-     * Retrieves the API-key holder's own account info, including the
-     * `username` used as the `receiver_push_username` argument to
-     * {@link pushDomain}. Requires `apiSecret` for request signing.
+     * Retrieves the API-key holder's own `account_info` payload (unwrapped
+     * from the RESTful envelope), including the `username` used as the
+     * `receiver_push_username` argument to {@link pushDomain}. Requires
+     * `apiSecret` for request signing.
+     *
+     * Rejects with the full RESTful envelope when `code !== "200"` or the
+     * `account_info` field is missing.
      */
-    async accountInfo(): Promise<AccountInfoResponse> {
-        return this.restRequest<AccountInfoResponse>(
+    async accountInfo(): Promise<AccountInfo> {
+        const res = await this.restRequest<AccountInfoResponse>(
             'get',
             '/restful/v1/accounts/info'
         )
+        if (res.code !== '200' || !res.data?.account_info) {
+            // eslint-disable-next-line no-throw-literal
+            throw res
+        }
+        return res.data.account_info
     }
 }
 

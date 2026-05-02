@@ -1,4 +1,4 @@
-import type { AccountInfoResponse, AdditionalHttpOptions, Coupon, Currency, DeleteResponse, DomainsByName, GetTransferAuthCodeResponse, HttpMethod, PushDomainResponse, RegisterResponse, RenewResponse, TldPricesByTld } from './types';
+import type { AccountInfo, AdditionalHttpOptions, Coupon, Currency, DeleteResponse, DomainsByName, GetTransferAuthCodeResponse, HttpMethod, PushDomainResponse, RegisterResponse, RenewResponse, TldPricesByTld } from './types';
 declare class Dynadot {
     apikey: string;
     apiSecret?: string;
@@ -43,11 +43,15 @@ declare class Dynadot {
      */
     pushDomain(domainName: string, receiverPushUsername: string, receiverEmail?: string): Promise<PushDomainResponse>;
     /**
-     * Retrieves the API-key holder's own account info, including the
-     * `username` used as the `receiver_push_username` argument to
-     * {@link pushDomain}. Requires `apiSecret` for request signing.
+     * Retrieves the API-key holder's own `account_info` payload (unwrapped
+     * from the RESTful envelope), including the `username` used as the
+     * `receiver_push_username` argument to {@link pushDomain}. Requires
+     * `apiSecret` for request signing.
+     *
+     * Rejects with the full RESTful envelope when `code !== "200"` or the
+     * `account_info` field is missing.
      */
-    accountInfo(): Promise<AccountInfoResponse>;
+    accountInfo(): Promise<AccountInfo>;
 }
 export default Dynadot;
 export { Dynadot };

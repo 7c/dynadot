@@ -599,23 +599,23 @@ describe('accountInfo (RESTful v1)', () => {
             d as unknown as { generateRequestId(): string },
             'generateRequestId'
         ).mockReturnValue(REQ_ID)
+        const accountInfoPayload = {
+            username: 'me_user',
+            forum_name: 'Me',
+            account_balance: '0.00',
+        }
         const payload = {
             code: '200',
             message: 'Success',
-            data: {
-                account_info: {
-                    username: 'me_user',
-                    forum_name: 'Me',
-                    account_balance: '0.00',
-                },
-            },
+            data: { account_info: accountInfoPayload },
         }
         mockedRequest.mockResolvedValueOnce({ data: payload })
 
         const got = await d.accountInfo()
 
         const expectedPath = '/restful/v1/accounts/info'
-        expect(got).toBe(payload)
+        expect(got).toBe(accountInfoPayload)
+        expect(got.username).toBe('me_user')
         expect(mockedRequest).toHaveBeenCalledWith({
             method: 'get',
             url: 'https://api.dynadot.com' + expectedPath,
@@ -632,20 +632,49 @@ describe('accountInfo (RESTful v1)', () => {
         expect(sentHeaders).not.toHaveProperty('Content-Type')
     })
 
-    test('passes the parsed response body through verbatim (data field of HttpResponse)', async () => {
+    test('returns the unwrapped account_info object (no envelope leak)', async () => {
         const d = new Dynadot(APIKEY, SECRET)
         jest.spyOn(
             d as unknown as { generateRequestId(): string },
             'generateRequestId'
         ).mockReturnValue(REQ_ID)
-        const payload = {
-            code: '200',
-            message: 'Success',
-            data: { account_info: { username: 'someone' } },
-        }
-        mockedRequest.mockResolvedValueOnce({ data: payload })
+        mockedRequest.mockResolvedValueOnce({
+            data: {
+                code: '200',
+                message: 'Success',
+                data: { account_info: { username: 'someone' } },
+            },
+        })
         const got = await d.accountInfo()
-        expect(got).toEqual(payload)
-        expect(got.data?.account_info.username).toBe('someone')
+        expect(got).toEqual({ username: 'someone' })
+        expect(got).not.toHaveProperty('code')
+        expect(got).not.toHaveProperty('message')
+        expect(got).not.toHaveProperty('data')
+    })
+
+    test('rejects with the full envelope when code is not "200"', async () => {
+        const d = new Dynadot(APIKEY, SECRET)
+        jest.spyOn(
+            d as unknown as { generateRequestId(): string },
+            'generateRequestId'
+        ).mockReturnValue(REQ_ID)
+        const errPayload = {
+            code: '401',
+            message: 'Unauthorized',
+            error: { description: 'invalid signature' },
+        }
+        mockedRequest.mockResolvedValueOnce({ data: errPayload })
+        await expect(d.accountInfo()).rejects.toEqual(errPayload)
+    })
+
+    test('rejects with the envelope when data.account_info is missing', async () => {
+        const d = new Dynadot(APIKEY, SECRET)
+        jest.spyOn(
+            d as unknown as { generateRequestId(): string },
+            'generateRequestId'
+        ).mockReturnValue(REQ_ID)
+        const malformed = { code: '200', message: 'Success', data: {} }
+        mockedRequest.mockResolvedValueOnce({ data: malformed })
+        await expect(d.accountInfo()).rejects.toEqual(malformed)
     })
 })
