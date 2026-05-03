@@ -72,9 +72,17 @@ export interface PushDomainRequest {
     receiver_push_username: string;
     receiver_email?: string;
 }
-/** Standard envelope returned by RESTful v1 endpoints. */
+/**
+ * Standard envelope returned by RESTful v1 endpoints.
+ *
+ * `code` is typed as `string | number` because Dynadot's RESTful v1 API
+ * returns it as a JSON number (e.g. `200`) in real responses, while their
+ * own docs and some error payloads use a quoted string (e.g. `"200"`).
+ * Callers should compare via `String(res.code) === '200'` (or use the
+ * `isRestfulSuccess` helper) rather than strict-equal against a string.
+ */
 export interface RestfulResponse<TData = unknown> {
-    code: string;
+    code: string | number;
     message: string;
     data?: TData;
     error?: {

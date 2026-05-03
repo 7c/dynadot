@@ -59,7 +59,7 @@ async function start(): Promise<void> {
             env.DYNADOT_PUSH_RECEIVER_EMAIL
         )
         console.log('[pushDomain] response:', result)
-        process.exit(result.code === '200' ? 0 : 2)
+        process.exit(String(result.code) === '200' ? 0 : 2)
     } catch (err) {
         console.error('[pushDomain] request failed:', err)
         process.exit(1)

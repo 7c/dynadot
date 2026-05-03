@@ -677,4 +677,39 @@ describe('accountInfo (RESTful v1)', () => {
         mockedRequest.mockResolvedValueOnce({ data: malformed })
         await expect(d.accountInfo()).rejects.toEqual(malformed)
     })
+
+    // Real Dynadot RESTful v1 responses return `code` as a JSON number, not
+    // a quoted string. Regression test for that shape: should still resolve.
+    test('accepts numeric code (200) — matches the real API shape', async () => {
+        const d = new Dynadot(APIKEY, SECRET)
+        jest.spyOn(
+            d as unknown as { generateRequestId(): string },
+            'generateRequestId'
+        ).mockReturnValue(REQ_ID)
+        const accountInfoPayload = { username: 'rolnet' }
+        mockedRequest.mockResolvedValueOnce({
+            data: {
+                code: 200,
+                message: 'Success',
+                data: { account_info: accountInfoPayload },
+            },
+        })
+        const got = await d.accountInfo()
+        expect(got).toBe(accountInfoPayload)
+    })
+
+    test('rejects on numeric non-200 code (e.g. 401)', async () => {
+        const d = new Dynadot(APIKEY, SECRET)
+        jest.spyOn(
+            d as unknown as { generateRequestId(): string },
+            'generateRequestId'
+        ).mockReturnValue(REQ_ID)
+        const errPayload = {
+            code: 401,
+            message: 'Unauthorized',
+            error: { description: 'invalid signature' },
+        }
+        mockedRequest.mockResolvedValueOnce({ data: errPayload })
+        await expect(d.accountInfo()).rejects.toEqual(errPayload)
+    })
 })

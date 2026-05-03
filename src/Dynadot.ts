@@ -284,7 +284,11 @@ class Dynadot {
             'get',
             '/restful/v1/accounts/info'
         )
-        if (res.code !== '200' || !res.data?.account_info) {
+        // Dynadot's RESTful v1 API returns `code` as a JSON number (200) on
+        // real calls, while their docs / some error payloads use a quoted
+        // string ("200"). Coerce both sides so we don't reject a successful
+        // response on a type mismatch.
+        if (String(res.code) !== '200' || !res.data?.account_info) {
             // eslint-disable-next-line no-throw-literal
             throw res
         }
