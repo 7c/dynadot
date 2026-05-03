@@ -26,7 +26,18 @@ export declare class HttpClient {
     private nodeImpl;
     /** Decides what bytes to send and which Content-Type to default to. */
     private encodeBody;
-    /** JSON-parse if the response advertises JSON; otherwise return raw text. */
+    /**
+     * JSON-parse the response when it is JSON; otherwise return raw text.
+     *
+     * In addition to the Content-Type sniff, we also peek at the body shape.
+     * Dynadot's RESTful v1 server has been observed to return JSON payloads
+     * without an `application/json` Content-Type (e.g. `text/plain` or no
+     * Content-Type at all), which previously caused `accountInfo()` and
+     * friends to receive the raw stringified envelope instead of an object.
+     * The shape heuristic only kicks in when the body starts with `{` or `[`
+     * (after optional whitespace / BOM), which is unambiguous vs. the XML v3
+     * API that always starts with `<`.
+     */
     private parseBody;
     /** Case-insensitive header presence check. */
     private hasHeader;
